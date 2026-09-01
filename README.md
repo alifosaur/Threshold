@@ -19,38 +19,23 @@
 
 AI buyers are shifting from **discovering products** to **executing purchases**. Threshold gives merchants the infrastructure to sell autonomously to AI agents while unlocking incremental revenue through intent-aware recommendations — without giving AI unconstrained authority over money.
 
-```text
-                    ┌─────────────────────────┐
-                    │     AI BUYER / USER     │
-                    └────────────┬────────────┘
-                                 │
-                                 ▼
-                    ┌─────────────────────────┐
-                    │      GROQ LLM AI        │
-                    │    Intent Resolution    │
-                    └────────────┬────────────┘
-                                 │
-                                 ▼
-                    ┌─────────────────────────┐
-                    │  AUTHORITATIVE CATALOG  │
-                    │   Exact Match? (SQLite) │
-                    └────────────┬────────────┘
-                                 │
-                                 ▼
-                    ┌─────────────────────────┐
-                    │      POLICY ENGINE      │
-                    │   Limits • Spend Caps   │
-                    └────────────┬────────────┘
-                                 │
-                        ┌────────┴────────┐
-                        │                 │
-                     APPROVED          BLOCKED
-                        │                 │
-                        ▼                 ▼
-                  ┌───────────┐      ┌─────────┐
-                  │ RAZORPAY  │      │  BLOCK  │
-                  │  PAYMENT  │      │   ₹0    │
-                  └───────────┘      └─────────┘
+```mermaid
+flowchart TD
+    User["👤 AI Buyer / User"] --> Intent["🧠 Groq LLM Engine<br/><i>Intent Resolution</i>"]
+    Intent --> Catalog{"📦 Authoritative Catalog<br/><i>Exact Match? (SQLite)</i>"}
+    
+    Catalog -->|No Match| Block["⛔ Block Request<br/><b>₹0 Movement • Zero Gateway Contact</b>"]
+    Catalog -->|Exact Match| Policy{"🛡️ Policy Engine<br/><i>Limits • Spend Caps • Whitelist</i>"}
+    
+    Policy -->|Rejected / Over Limit| Block
+    Policy -->|Approved| Razorpay["💳 Razorpay Gateway<br/><i>Order: PAYMENT_PENDING</i>"]
+    
+    Razorpay --> Verify["🔐 HMAC-SHA256 Verification"]
+    Verify --> Complete["✅ Order Settled<br/><b>COMPLETED • Audited</b>"]
+
+    style Block fill:#FEE2E2,stroke:#DC2626,stroke-width:2px;
+    style Complete fill:#D1FAE5,stroke:#059669,stroke-width:2px;
+    style Policy fill:#FEF3C7,stroke:#D97706,stroke-width:2px;
 ```
 
 ---
@@ -59,24 +44,20 @@ AI buyers are shifting from **discovering products** to **executing purchases**.
 
 Threshold separates discovery intelligence from spending authority:
 
-```text
-Buyer Intent
-     ↓
-Primary Product
-     ↓
-AI Recommendation
-     ↓
-Potential Basket Lift
-     ↓
-Policy / Budget Headroom Check
-     ↓
-┌──────────────────────────────────────────────┐
-│        EXPLICIT USER AUTHORIZATION           │
-│   "Authorize & Buy Recommended Item (+₹199)"  │
-└──────────────────────┬───────────────────────┘
-                       │
-                       ▼
-                    PAYMENT
+```mermaid
+flowchart TD
+    Intent["🎯 1. Buyer Intent<br/><i>'Buy an oversized tee'</i>"] --> Match["🛍️ 2. Primary Product<br/><b>Black Oversized Tee (₹699)</b>"]
+    Match --> CrossSell["✨ 3. AI Cross-Sell Opportunity<br/><b>Cotton Crew Socks (+₹199)</b>"]
+    CrossSell --> Headroom["📊 4. Budget Headroom Check<br/><i>₹301 headroom under ₹1,000 limit</i>"]
+    Headroom --> Prompt["🔒 5. Explicit Authorization Gate<br/><b>Recommendation ≠ Authorization</b>"]
+    
+    Prompt -->|User Clicks '+ Add'| AuthApproved["✅ Explicit Intent Authorized"]
+    Prompt -->|User Declines| SingleOrder["💳 Proceed With Primary Item Only (₹699)"]
+    
+    AuthApproved --> GatedPay["💳 Gated Payment (₹898 Total Basket)"]
+
+    style Prompt fill:#FEF3C7,stroke:#D97706,stroke-width:2px;
+    style GatedPay fill:#D1FAE5,stroke:#059669,stroke-width:2px;
 ```
 
 ### Real-World Example:
@@ -96,19 +77,14 @@ STATUS: RECOMMENDATION ONLY — USER AUTHORIZATION REQUIRED
 
 ## 🧠 Why Threshold?
 
-```text
-┌───────────────────────────────────────┐    ┌───────────────────────────────────────┐
-│        🤖 AI BUYER COMMERCE           │    │          📈 MERCHANT GROWTH           │
-├───────────────────────────────────────┤    ├───────────────────────────────────────┤
-│ • Natural-language purchasing (Groq)  │    │ • Contextual cross-sell & upsell      │
-│ • Machine-readable feed (/catalog/acp)│    │ • Basket-value optimization           │
-│ • Agent manifest (/.well-known/...)   │    │ • Budget headroom analysis            │
-│ • Independent server-side policy gate │    │ • AI growth campaign generator        │
-│ • Signed HMAC-SHA256 mandates         │    │ • Live intent-matching lift benchmark │
-│ • Razorpay payment lifecycle          │    │ • Transparent simulated metrics       │
-│ • Append-only cryptographic audit     │    │ • Recommendation ≠ Authorization      │
-└───────────────────────────────────────┘    └───────────────────────────────────────┘
-```
+| 🤖 AI Buyer Commerce | 📈 Merchant Growth |
+|---|---|
+| • **Natural-Language Purchasing**: Zero-shot Groq Llama 3.3 intent parsing | • **Contextual Cross-Sell & Upsell**: Budget-aware add-ons |
+| • **Agent-Readable Feed**: Structured `/catalog/acp` product endpoint | • **Basket-Value Optimization**: Incremental GMV analysis |
+| • **Discovery Manifest**: Machine-readable `/.well-known/agent-catalog.json` | • **Budget Headroom Analysis**: Stays within consumer caps |
+| • **Independent Policy Gate**: Server-side spending & whitelist controls | • **AI Growth Campaigns**: One-click targeted buyer queries |
+| • **Signed HMAC Mandates**: Cryptographic AP2-inspired authorization proofs | • **Live Lift Benchmark**: Real LLM intent-matching experiments |
+| • **Razorpay State Machine**: Deterministic `PENDING` $\to$ `COMPLETED` lifecycle | • **Recommendation ≠ Authorization**: Gated user consent |
 
 ---
 
@@ -116,22 +92,27 @@ STATUS: RECOMMENDATION ONLY — USER AUTHORIZATION REQUIRED
 
 ```mermaid
 flowchart TD
-    A[AI Buyer / User] --> B[Request + Correlation X-Request-ID]
-    B --> C[Groq Intent Resolution]
-    C --> D[Authoritative SQLite Catalog]
+    A["👤 AI Buyer / User"] --> B["⚡ Request Correlation (X-Request-ID)"]
+    B --> C["🧠 Groq LLM Engine (Intent Resolution)"]
+    C --> D{"📦 Authoritative SQLite Catalog"}
 
-    D -->|NO EXACT MATCH| X[FAIL CLOSED: ₹0 GATEWAY CONTACT]
-    D -->|EXACT MATCH| E[Policy Engine & Mutex]
+    D -->|NO EXACT MATCH| X["⛔ FAIL CLOSED: ₹0 Gateway Contact"]
+    D -->|EXACT MATCH| E{"🛡️ Policy Engine & Mutex"}
 
     E -->|REJECTED / OVER LIMIT| X
-    E -->|APPROVED| F[Signed HMAC Mandate]
+    E -->|APPROVED| F["🔏 Signed HMAC-SHA256 Mandate"]
 
-    F --> G[Razorpay Adapter]
-    G --> H[Order State: PAYMENT_PENDING]
-    H --> I[HMAC Payment Signature Verification]
-    I --> J[Order State: COMPLETED]
+    F --> G["💳 Razorpay Adapter (Test/Live)"]
+    G --> H["⏳ Order State: PAYMENT_PENDING"]
+    H --> I["🔐 HMAC Payment Signature Verification"]
+    I --> J["✅ Order State: COMPLETED"]
 
-    J --> K[Append-Only Audit Ledger]
+    J --> K["📜 Append-Only Cryptographic Audit Ledger"]
+
+    style X fill:#FEE2E2,stroke:#DC2626,stroke-width:2px;
+    style F fill:#EFF6FF,stroke:#3B82F6,stroke-width:2px;
+    style J fill:#D1FAE5,stroke:#059669,stroke-width:2px;
+    style K fill:#F3F4F6,stroke:#6B7280,stroke-width:2px;
 ```
 
 > **Every money action passes through catalog validation, server-side policy enforcement, and cryptographic payment verification before completion.**
@@ -151,41 +132,39 @@ flowchart TD
 | **Authorization Boundary** | Cross-sells require explicit user intent; AI cannot self-authorize charges |
 | **Audit Ledger** | Append-only SQLite ledger records intent, policy reasons, mandates, and payments |
 
-```text
-              AI INTENT
-                  │
-                  ▼
-            RECOMMENDATION
-                  │
-                  X
-            ❌ NOT PAYMENT
-                  │
-                  ▼
-         USER AUTHORIZATION
-                  │
-                  ▼
-            POLICY GATE
-                  │
-                  ▼
-         RAZORPAY SETTLEMENT
+```mermaid
+flowchart TD
+    AI["🤖 AI Intent Parsing"] --> Rec["✨ AI Cross-Sell Recommendation"]
+    Rec --> Barrier{"❌ RECOMMENDATION ≠ PAYMENT<br/><i>Zero Autonomous Money Movement</i>"}
+    
+    Barrier -->|Requires User Intent| Auth["👤 Explicit User Authorization<br/><b>Click 'Authorize & Buy'</b>"]
+    Auth --> PolicyCheck["🛡️ Server-Side Policy Engine<br/><i>Per-Txn & Session Spend Caps</i>"]
+    PolicyCheck --> Gate["💳 Razorpay Gateway Settlement"]
+
+    style Barrier fill:#FEE2E2,stroke:#DC2626,stroke-width:2px;
+    style Auth fill:#FEF3C7,stroke:#D97706,stroke-width:2px;
+    style Gate fill:#D1FAE5,stroke:#059669,stroke-width:2px;
 ```
 
 ---
 
 ## 🌐 Protocol Interoperability
 
-```text
-AP2-Inspired
-     │
-     └── HMAC-SHA256 Signed Mandates ({item_id, price, approved, limits, timestamp})
-     
-ACP-Compatible
-     │
-     └── Machine-Readable Feeds (GET /catalog/acp & GET /.well-known/agent-catalog.json)
-     
-x402-Style Handshake
-     │
-     └── Payment-Required Flow (POST /agent/act/x402 -> HTTP 402 Payload)
+```mermaid
+flowchart LR
+    subgraph AP2["AP2-Inspired"]
+        A["🔏 Signed Mandates<br/><i>HMAC-SHA256 over Canonical Tuple</i>"]
+    end
+    subgraph ACP["ACP-Compatible"]
+        B["📋 Machine-Readable Feed<br/><i>GET /catalog/acp & Manifest</i>"]
+    end
+    subgraph X402["x402-Style"]
+        C["🤝 Payment Handshake<br/><i>POST /agent/act/x402 -> HTTP 402</i>"]
+    end
+
+    style AP2 fill:#EFF6FF,stroke:#3B82F6,stroke-width:1px;
+    style ACP fill:#F0FDF4,stroke:#16A34A,stroke-width:1px;
+    style X402 fill:#FAF5FF,stroke:#9333EA,stroke-width:1px;
 ```
 
 > **Note**: Threshold uses protocol-aligned interfaces for interoperability. It does **not** claim official AP2, ACP, or x402 third-party certification.
