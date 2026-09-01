@@ -1,315 +1,291 @@
-# 🛡️ THRESHOLD
+# THRESHOLD
 
 ### Safe AI-Native Commerce & Revenue Growth for Merchants
 
-> **Make merchants sellable to AI buyers — while helping them grow revenue — with every money action explainable, bounded, and gated.**
+> **Make merchants sellable to AI buyers while helping them grow revenue — with every money action explainable, bounded, and gated.**
 
-**Built for the Razorpay AI Buildathon 2026 — Track: AI Growth & Agentic Commerce**
+**Razorpay AI Buildathon 2026 — Track: AI Growth & Agentic Commerce**
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4-blue.svg)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18.3-61dafb.svg)](https://react.dev/)
 [![Razorpay](https://img.shields.io/badge/Razorpay-Test%20Mode-02042B.svg)](https://razorpay.com/)
 [![Groq](https://img.shields.io/badge/AI-Groq%20%2F%20Llama%203.3-orange.svg)](https://groq.com/)
-[![Tests](https://img.shields.io/badge/Tests-77%2F77%20Passed-success.svg)](#-proof--automated-verification)
+[![Tests](https://img.shields.io/badge/Tests-77%2F77%20Passed-success.svg)](#9-verification)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ---
 
-## 🎯 What is Threshold?
+| | |
+|:---|:---|
+| **Problem** | AI commerce needs reliable catalog grounding, bounded authority, safe payment execution, and merchant growth intelligence. |
+| **Solution** | Threshold connects buyer intent, authoritative catalog matching, policy enforcement, payment execution, auditability, and budget-aware recommendations. |
+| **Core Rule** | **Recommendation ≠ Authorization**. AI may recommend an opportunity; it cannot silently turn that opportunity into a purchase. |
 
-AI buyers are shifting from **discovering products** to **executing purchases**. Threshold gives merchants the infrastructure to sell autonomously to AI agents while unlocking incremental revenue through intent-aware recommendations — without giving AI unconstrained authority over money.
+---
 
-```mermaid
-flowchart TD
-    User["👤 AI Buyer / User"] --> Intent["🧠 Groq LLM Engine<br/><i>Intent Resolution</i>"]
-    Intent --> Catalog{"📦 Authoritative Catalog<br/><i>Exact Match? (SQLite)</i>"}
-    
-    Catalog -->|No Match| Block["⛔ Block Request<br/><b>₹0 Movement • Zero Gateway Contact</b>"]
-    Catalog -->|Exact Match| Policy{"🛡️ Policy Engine<br/><i>Limits • Spend Caps • Whitelist</i>"}
-    
-    Policy -->|Rejected / Over Limit| Block
-    Policy -->|Approved| Razorpay["💳 Razorpay Gateway<br/><i>Order: PAYMENT_PENDING</i>"]
-    
-    Razorpay --> Verify["🔐 HMAC-SHA256 Verification"]
-    Verify --> Complete["✅ Order Settled<br/><b>COMPLETED • Audited</b>"]
+## 1. The Product
 
-    style Block fill:#FEE2E2,stroke:#DC2626,stroke-width:2px;
-    style Complete fill:#D1FAE5,stroke:#059669,stroke-width:2px;
-    style Policy fill:#FEF3C7,stroke:#D97706,stroke-width:2px;
+Threshold is a full-stack AI-native commerce engine with two connected goals: **make merchants sellable to AI buyers** and **help merchants grow revenue**. 
+
+Natural-language intent is resolved by Groq, grounded against an authoritative SQLite catalog, evaluated by an independent server-side policy engine, and only then allowed to reach the Razorpay payment layer. Cross-sell recommendations remain strictly separate from authorization and require explicit user intent.
+
+---
+
+## 2. Core Commerce Flow
+
+```text
+AI Buyer / User
+      │
+      ▼
+Intent Resolution (Groq)
+      │
+      ▼
+Authoritative Catalog (SQLite)
+      │
+  ┌───┴───┐
+  │       │
+NO MATCH  EXACT MATCH
+  │       │
+  ▼       ▼
+FAIL    Policy Engine
+CLOSED  (Spend Caps & Whitelist)
+(₹0)      │
+      ┌───┴───┐
+      │       │
+    REJECT  APPROVE
+      │       │
+      ▼       ▼
+    FAIL    Signed HMAC Mandate
+    CLOSED    │
+              ▼
+            Razorpay Order (PAYMENT_PENDING)
+              │
+              ▼
+            HMAC Verification + Webhook
+              │
+              ▼
+            PAID ──► COMPLETED
+              │
+              ▼
+            Append-Only Audit Trail
 ```
 
 ---
 
-## 💰 The Growth Loop: Recommendation ≠ Authorization
+## 3. Merchant Growth Loop
 
-Threshold separates discovery intelligence from spending authority:
-
-```mermaid
-flowchart TD
-    Intent["🎯 1. Buyer Intent<br/><i>'Buy an oversized tee'</i>"] --> Match["🛍️ 2. Primary Product<br/><b>Black Oversized Tee (₹699)</b>"]
-    Match --> CrossSell["✨ 3. AI Cross-Sell Opportunity<br/><b>Cotton Crew Socks (+₹199)</b>"]
-    CrossSell --> Headroom["📊 4. Budget Headroom Check<br/><i>₹301 headroom under ₹1,000 limit</i>"]
-    Headroom --> Prompt["🔒 5. Explicit Authorization Gate<br/><b>Recommendation ≠ Authorization</b>"]
-    
-    Prompt -->|User Clicks '+ Add'| AuthApproved["✅ Explicit Intent Authorized"]
-    Prompt -->|User Declines| SingleOrder["💳 Proceed With Primary Item Only (₹699)"]
-    
-    AuthApproved --> GatedPay["💳 Gated Payment (₹898 Total Basket)"]
-
-    style Prompt fill:#FEF3C7,stroke:#D97706,stroke-width:2px;
-    style GatedPay fill:#D1FAE5,stroke:#059669,stroke-width:2px;
+```text
+Buyer Intent
+     │
+     ▼
+Primary Product + Price
+     │
+     ▼
+AI Cross-Sell / Upsell Recommendation
+     │
+     ▼
+Potential Basket + Incremental Opportunity
+     │
+     ▼
+Policy / Budget Headroom Check
+     │
+     ▼
+EXPLICIT USER AUTHORIZATION
+     │
+     ├── Decline ────► Primary item only
+     │
+     └── Authorize ──► Re-check Policy ──► Razorpay Payment
 ```
 
 ### Real-World Example:
-```text
-Primary Purchase:       Black Oversized Tee (₹699)
-AI Revenue Opportunity: Cotton Crew Socks (₹199)
-────────────────────────────────────────────────────
-Potential Basket:       ₹898
-Incremental Revenue:    +₹199
-Policy Headroom:        ₹301 available under ₹1,000 cap
+- **Primary Item**: Black Oversized Tee (₹699)
+- **AI Recommendation**: Cotton Crew Socks (₹199)
+- **Potential Basket**: ₹898
+- **Potential Incremental Revenue**: +₹199
+- **Policy Headroom**: ₹301 available under ₹1,000 transaction cap
 
-STATUS: RECOMMENDATION ONLY — USER AUTHORIZATION REQUIRED
-```
-> 🔒 **Core Rule**: An AI recommendation can never silently become a purchase.
+> *These are potential/simulated values derived from live LLM intent-matching benchmarks, not guaranteed revenue.*
 
 ---
 
-## 🧠 Why Threshold?
+## 4. What Makes It Different
 
-| 🤖 AI Buyer Commerce | 📈 Merchant Growth |
-|---|---|
-| • **Natural-Language Purchasing**: Zero-shot Groq Llama 3.3 intent parsing | • **Contextual Cross-Sell & Upsell**: Budget-aware add-ons |
-| • **Agent-Readable Feed**: Structured `/catalog/acp` product endpoint | • **Basket-Value Optimization**: Incremental GMV analysis |
-| • **Discovery Manifest**: Machine-readable `/.well-known/agent-catalog.json` | • **Budget Headroom Analysis**: Stays within consumer caps |
-| • **Independent Policy Gate**: Server-side spending & whitelist controls | • **AI Growth Campaigns**: One-click targeted buyer queries |
-| • **Signed HMAC Mandates**: Cryptographic AP2-inspired authorization proofs | • **Live Lift Benchmark**: Real LLM intent-matching experiments |
-| • **Razorpay State Machine**: Deterministic `PENDING` $\to$ `COMPLETED` lifecycle | • **Recommendation ≠ Authorization**: Gated user consent |
-
----
-
-## 🏗️ Architecture
-
-```mermaid
-flowchart TD
-    A["👤 AI Buyer / User"] --> B["⚡ Request Correlation (X-Request-ID)"]
-    B --> C["🧠 Groq LLM Engine (Intent Resolution)"]
-    C --> D{"📦 Authoritative SQLite Catalog"}
-
-    D -->|NO EXACT MATCH| X["⛔ FAIL CLOSED: ₹0 Gateway Contact"]
-    D -->|EXACT MATCH| E{"🛡️ Policy Engine & Mutex"}
-
-    E -->|REJECTED / OVER LIMIT| X
-    E -->|APPROVED| F["🔏 Signed HMAC-SHA256 Mandate"]
-
-    F --> G["💳 Razorpay Adapter (Test/Live)"]
-    G --> H["⏳ Order State: PAYMENT_PENDING"]
-    H --> I["🔐 HMAC Payment Signature Verification"]
-    I --> J["✅ Order State: COMPLETED"]
-
-    J --> K["📜 Append-Only Cryptographic Audit Ledger"]
-
-    style X fill:#FEE2E2,stroke:#DC2626,stroke-width:2px;
-    style F fill:#EFF6FF,stroke:#3B82F6,stroke-width:2px;
-    style J fill:#D1FAE5,stroke:#059669,stroke-width:2px;
-    style K fill:#F3F4F6,stroke:#6B7280,stroke-width:2px;
-```
-
-> **Every money action passes through catalog validation, server-side policy enforcement, and cryptographic payment verification before completion.**
+| Capability | Implementation |
+|:---|:---|
+| **AI Buyer Commerce** | Natural-language purchase intent resolved by Groq and grounded to exact catalog products. |
+| **Agent-Readable Catalog** | Machine-readable catalog endpoint (`/catalog/acp`) and discovery manifest (`/.well-known/agent-catalog.json`) for AI buyer ingestion. |
+| **Merchant Growth** | Contextual cross-sell / upsell opportunities constrained by budget and policy headroom. |
+| **Payment Safety** | Independent policy gate, signed mandate, deterministic payment lifecycle, verification, webhooks, and refunds. |
+| **Auditability** | Append-only audit events with request correlation (`X-Request-ID`) and payment lifecycle visibility. |
 
 ---
 
-## 🛡️ Safety & Governance
+## 5. Safety Architecture
 
-| Protection | What Threshold Does |
-|---|---|
-| **Spend Limits** | Enforces per-transaction (₹1,000) and cumulative session (₹1,500) caps |
-| **Fail Closed** | Upstream AI failures, timeouts, or parse errors result in ₹0 money movement |
-| **No Exact Match** | Missing SKUs trigger `NO_EXACT_MATCH`; zero autonomous product substitutions |
-| **Idempotency** | Duplicate requests via `run_id` or `Idempotency-Key` reuse existing orders |
-| **Concurrency Mutex** | `AsyncMutex` serializes concurrent spend evaluation, eliminating race conditions |
-| **Payment Verification** | Cryptographic HMAC-SHA256 signature, amount, and currency validation |
-| **Authorization Boundary** | Cross-sells require explicit user intent; AI cannot self-authorize charges |
-| **Audit Ledger** | Append-only SQLite ledger records intent, policy reasons, mandates, and payments |
-
-```mermaid
-flowchart TD
-    AI["🤖 AI Intent Parsing"] --> Rec["✨ AI Cross-Sell Recommendation"]
-    Rec --> Barrier{"❌ RECOMMENDATION ≠ PAYMENT<br/><i>Zero Autonomous Money Movement</i>"}
-    
-    Barrier -->|Requires User Intent| Auth["👤 Explicit User Authorization<br/><b>Click 'Authorize & Buy'</b>"]
-    Auth --> PolicyCheck["🛡️ Server-Side Policy Engine<br/><i>Per-Txn & Session Spend Caps</i>"]
-    PolicyCheck --> Gate["💳 Razorpay Gateway Settlement"]
-
-    style Barrier fill:#FEE2E2,stroke:#DC2626,stroke-width:2px;
-    style Auth fill:#FEF3C7,stroke:#D97706,stroke-width:2px;
-    style Gate fill:#D1FAE5,stroke:#059669,stroke-width:2px;
-```
+| Protection | Behavior |
+|:---|:---|
+| **Gated Money Movement** | Only `APPROVED` policy decisions may initiate gateway orders. |
+| **Fail Closed** | AI, parsing, policy, or upstream failures cannot authorize money movement (₹0 contacted). |
+| **Exact-Match Grounding** | `NO_EXACT_MATCH` blocks autonomous substitution when an item is missing. |
+| **Spend Controls** | Per-transaction (₹1,000) and cumulative session (₹1,500) limits enforced server-side. |
+| **Idempotency** | `run_id` / `Idempotency-Key` prevents duplicate orders and double-charges. |
+| **Concurrency** | `AsyncMutex` serialization prevents concurrent overspending and race conditions. |
+| **Payment Verification** | Cryptographic HMAC-SHA256 signature, amount, and currency checks protect completion. |
+| **Authorization Boundary** | AI recommendations never self-authorize additional purchases. |
+| **Secret Protection** | Signing secrets and gateway credentials are never returned by health or diagnostics. |
 
 ---
 
-## 🌐 Protocol Interoperability
+## 6. Architecture Layers
 
-```mermaid
-flowchart LR
-    subgraph AP2["AP2-Inspired"]
-        A["🔏 Signed Mandates<br/><i>HMAC-SHA256 over Canonical Tuple</i>"]
-    end
-    subgraph ACP["ACP-Compatible"]
-        B["📋 Machine-Readable Feed<br/><i>GET /catalog/acp & Manifest</i>"]
-    end
-    subgraph X402["x402-Style"]
-        C["🤝 Payment Handshake<br/><i>POST /agent/act/x402 -> HTTP 402</i>"]
-    end
-
-    style AP2 fill:#EFF6FF,stroke:#3B82F6,stroke-width:1px;
-    style ACP fill:#F0FDF4,stroke:#16A34A,stroke-width:1px;
-    style X402 fill:#FAF5FF,stroke:#9333EA,stroke-width:1px;
-```
-
-> **Note**: Threshold uses protocol-aligned interfaces for interoperability. It does **not** claim official AP2, ACP, or x402 third-party certification.
+| Layer | Responsibility | Technology |
+|:---|:---|:---|
+| **Intent** | Resolve natural language buyer goals | Groq / Llama-based AI |
+| **Catalog** | Authoritative product grounding & stock | SQLite |
+| **Policy** | Budget, merchant whitelist, and authorization checks | TypeScript + AsyncMutex |
+| **Payment** | Orders, verification, webhooks, refunds | Razorpay Adapter |
+| **Audit** | Trace decisions and payment lifecycle events | SQLite Audit Ledger |
+| **Frontend** | Commerce storefront, growth analytics, diagnostics | React + Vite + Tailwind |
 
 ---
 
-## 💳 Payment Lifecycle State Machine
+## 7. Protocol Positioning
 
-```mermaid
-stateDiagram-v2
-    [*] --> CREATED
-    CREATED --> PAYMENT_PENDING : Razorpay Order Created
-    PAYMENT_PENDING --> PAID : HMAC Signature Verified
-    PAYMENT_PENDING --> PAYMENT_FAILED : Verification Error / Timeout
-    PAID --> COMPLETED : Order Settled & Audited
-    COMPLETED --> REFUNDED : Gateway Refund Processed
-    PAYMENT_FAILED --> [*]
-    REFUNDED --> [*]
-```
+Threshold's core product is **safe, bounded, AI-native commerce**. Protocol compatibility is an interoperability advantage, not a certification claim.
+
+| Protocol | Alignment |
+|:---|:---|
+| **AP2-inspired** | HMAC-SHA256 signed mandate concept for bounded authorization. |
+| **ACP-compatible catalog shape** | Machine-readable product feed (`/catalog/acp`) and discovery manifest. |
+| **x402-style handshake** | Payment-required response flow exposed through `POST /agent/act/x402`. |
+
+> *No official AP2, ACP, or x402 certification is claimed.*
 
 ---
 
-## 🧪 Proof & Automated Verification
+## 8. Payment Lifecycle
 
 ```text
-┌────────────────────────────────────────────────────────┐
-│             AUTOMATED TEST SUITE VERIFICATION          │
-├────────────────────────────────────────────────────────┤
-│                                                        │
-│       Phase 7: Safety Regression Suite      12 / 12 ✓  │
-│       Phase 8: State Machine & Observability 24 / 24 ✓ │
-│       Phase 9: Production Integration       41 / 41 ✓  │
-│       ───────────────────────────────────────────────   │
-│       TOTAL VERIFIED TESTS                  77 / 77 ✓  │
-│                                                        │
-└────────────────────────────────────────────────────────┘
+CREATED
+   │
+   ▼
+PAYMENT_PENDING ──► PAYMENT_FAILED
+   │
+   ▼
+PAID
+   │
+   ▼
+COMPLETED
+   │
+   ▼
+REFUNDED
 ```
-
-> **Verified Invariants**: Policy spend blocks contact ₹0 gateway · `NO_EXACT_MATCH` fails closed · Replay attacks deduplicated · Mutex prevents race-condition overspends · Tampered payments rejected · Webhook idempotency · Append-only audit integrity.
 
 ---
 
-## 🚀 Quick Start
+## 9. Verification
 
-### 1. Clone & Setup
+| Test Suite | Result | Coverage |
+|:---|:---:|:---|
+| **Phase 7** | **12 / 12 ✓** | Safety regression (Limits, Whitelists, Fail-closed, Mutex, Demo) |
+| **Phase 8** | **24 / 24 ✓** | State machine, observability, payment verification, idempotency |
+| **Phase 9** | **41 / 41 ✓** | Razorpay integration, reconciliation, refunds, security headers |
+| **TOTAL** | **77 / 77 ✓** | **100% Automated Tests Passed** |
+
+Verified areas include blocked transactions with zero Razorpay contact, `NO_EXACT_MATCH`, duplicate protection, concurrent-spend protection, invalid payment verification, amount/currency mismatch rejection, payment failures, audit integrity, request-ID propagation, and secret non-disclosure.
+
+---
+
+## 10. Key API Surface
+
+| Endpoint | Purpose |
+|:---|:---|
+| `POST /agent/act` | Natural-language purchase intent with policy gating. |
+| `POST /agent/act/x402` | Payment-required handshake flow. |
+| `GET /catalog/acp` | Machine-readable catalog feed (ACP format). |
+| `GET /.well-known/agent-catalog.json` | Agent discovery manifest. |
+| `GET /policy` / `POST /policy` | Inspect and configure policy limits and lockout. |
+| `POST /growth/simulate-lift` | Intent-matching growth benchmark. |
+| `POST /growth/campaign` | Targeted AI buyer campaign generation. |
+| `POST /payments/verify` | Payment signature and state verification. |
+| `POST /payments/webhook` | Webhook ingestion and deduplication. |
+| `POST /payments/refund` | Refund lifecycle execution. |
+| `GET /payments/reconciliation` | Payment ledger reconciliation report. |
+| `POST /demo/safety` | Judge-facing 3-scenario safety verification. |
+
+---
+
+## 11. Quick Start
+
+**Prerequisites**: Node.js $\ge 18$ and npm $\ge 9$. Configure local environment variables. Never commit real credentials or signing secrets.
+
 ```bash
 git clone https://github.com/alifosaur/Threshold.git
 cd Threshold
-```
 
-### 2. Configure Environment
-```bash
 cp .env.example .env
 cp backend/.env.example backend/.env
-```
 
-Edit `backend/.env`:
-```env
-PORT=5000
-NODE_ENV=development
-GROQ_API_KEY=your_groq_api_key_here
-RAZORPAY_MODE=test
-RAZORPAY_KEY_ID=your_razorpay_key_id
-RAZORPAY_KEY_SECRET=your_razorpay_key_secret
-RAZORPAY_WEBHOOK_SECRET=your_webhook_secret_here
-AGENT_API_TOKEN=th_agent_sec_dev_token_2026
-POLICY_SIGNING_SECRET=th_ap2_mandate_sec_2026
-```
-
-### 3. Run Backend
-```bash
+# Backend
 cd backend
-npm install
+npm ci
+npm run build
+npm run dev
+
+# Frontend — new terminal
+cd frontend
+npm ci
 npm run build
 npm run dev
 ```
-*Backend runs at `http://localhost:5000`.*
 
-### 4. Run Frontend
-```bash
-cd ../frontend
-npm install
-npm run build
-npm run dev
-```
-*Frontend runs at `http://localhost:3000`.*
-
-### 5. Run Test Suites
-```bash
-node backend/test_phase7_regression.mjs
-node backend/test_phase8.mjs
-node backend/test_phase9.mjs
-```
+*Use `npm ci` with the committed lockfiles for a clean, reproducible install; do not copy `node_modules` between platforms.*
 
 ---
 
-## 🔌 Key APIs
+## 12. Environment Configuration
 
-```text
-AI COMMERCE & DISCOVERY
-POST /agent/act                     # Execute purchasing intent with policy gating
-POST /agent/act/x402                # Execute x402 payment-required handshake
-GET  /catalog/acp                   # ACP-formatted product feed
-GET  /.well-known/agent-catalog.json# Machine-readable discovery manifest
-
-POLICY & GOVERNANCE
-GET  /policy                        # Inspect spend limits & session spend
-POST /policy                        # Update limits & emergency policy lock
-
-GROWTH INTELLIGENCE
-POST /growth/simulate-lift          # Run live intent-matching benchmark
-POST /growth/campaign               # Generate targeted AI buyer campaigns
-
-PAYMENT LIFECYCLE
-POST /payments/verify               # Verify HMAC signature & transition to COMPLETED
-POST /payments/webhook              # Ingest & deduplicate gateway webhooks
-POST /payments/refund               # Execute refund & transition to REFUNDED
-GET  /payments/reconciliation       # Payment ledger reconciliation report
-
-DIAGNOSTICS & DEMO
-GET  /health/detailed               # System components & metrics
-POST /demo/safety                   # 1-click 3-scenario judge safety runner
-```
+| Variable | Purpose |
+|:---|:---|
+| `GROQ_API_KEY` | Live AI intent and growth calls. |
+| `RAZORPAY_MODE` | Gateway mode; use `test` mode for the demo. |
+| `RAZORPAY_KEY_ID` / `SECRET` | Razorpay credentials; keep private. |
+| `RAZORPAY_WEBHOOK_SECRET` | Webhook verification; keep private. |
+| `AGENT_API_TOKEN` | Agent API authentication. |
+| `POLICY_SIGNING_SECRET` | Required HMAC signing secret; no hardcoded production fallback. |
 
 ---
 
-## ⚠️ Honest Scope & Limitations
+## 13. Honest Scope & Limitations
 
-- **Gateway Mode**: Demonstrated in Razorpay Test Mode with deterministic offline fallback simulator when keys are omitted.
-- **Growth Metrics**: Lift numbers are calculated via live Groq intent-matching against real catalog SKUs and labeled as **Simulated Benchmarks**, not guaranteed revenue.
-- **Protocol Framing**: AP2, ACP, and x402 references denote schema-aligned compatibility layers, not formal third-party accreditations.
-
----
-
-## 👨‍💻 Built For
-
-### Razorpay AI Buildathon 2026
-**Track: AI Growth & Agentic Commerce**
-
-> *"Threshold — because when AI gets access to money, autonomy needs a boundary."*
+| Area | Honest Description |
+|:---|:---|
+| **Growth metrics** | Potential / simulated benchmarks from intent-matching experiments; not guaranteed merchant revenue. |
+| **Protocols** | AP2-inspired, ACP-compatible, and x402-style interfaces; no third-party certification claimed. |
+| **Gateway** | Razorpay integration is demonstrated through the configured gateway mode; test mode is appropriate for the hackathon demo. |
+| **Production readiness** | 77/77 tests passing is strong evidence, but does not by itself mean the system is enterprise-deployed. |
 
 ---
 
-## 📄 License
+## 14. Tech Stack
 
-MIT License. Built for the Razorpay AI Buildathon 2026.
+| Area | Technologies |
+|:---|:---|
+| **Frontend** | React 18 + Vite + Tailwind CSS |
+| **Backend** | TypeScript + Node.js + Express |
+| **AI** | Groq / Llama-based inference |
+| **Database** | SQLite (`sqlite3` / `sqlite`) |
+| **Payments** | Razorpay adapter |
+| **Security** | HMAC-SHA256, policy gating, idempotency, concurrency serialization |
+
+---
+
+## 15. Repository & License
+
+- **GitHub**: [https://github.com/alifosaur/Threshold](https://github.com/alifosaur/Threshold)
+- **License**: MIT
+- **Built for**: Razorpay AI Buildathon 2026 — AI Growth & Agentic Commerce
+
+> *When AI gets access to money, autonomy needs a boundary.*
 
 
