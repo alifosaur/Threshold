@@ -97,14 +97,17 @@ export interface PaymentEvent {
 }
 
 export interface GrowthCampaign {
-  campaign_id: string;
-  timestamp: string;
-  merchant_goal: string;
-  target_product: CatalogItem;
-  ai_buyer_persona: string;
-  channel_strategy: string;
-  sample_buyer_query: string;
-  expected_basket_lift: string;
+  campaign_id?: string;
+  timestamp?: string;
+  merchant_goal?: string;
+  target_product?: CatalogItem;
+  ai_buyer_persona?: string;
+  channel_strategy?: string;
+  sample_buyer_query?: string;
+  expected_basket_lift?: string;
+  campaign_name?: string;
+  target_intent?: string;
+  ai_buyer_message?: string;
   cross_sell_candidate?: CatalogItem;
   simulation_result?: {
     buyer_prompt: string;

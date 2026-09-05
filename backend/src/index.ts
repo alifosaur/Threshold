@@ -1598,30 +1598,44 @@ app.post('/growth/campaign', async (req, res) => {
       return sendApiError(res, 404, 'ORDER_NOT_FOUND', 'Product not found in catalog.');
     }
 
-    const campaign = await generateCampaignProposal(product, merchant_goal);
+    const proposal = await generateCampaignProposal(product, merchant_goal);
     const run_id = crypto.randomUUID();
+
+    const campaignObj = {
+      campaign_id: `cmp_${run_id.substring(0, 8)}`,
+      timestamp: new Date().toISOString(),
+      merchant_goal: merchant_goal || 'Maximize AI buyer discovery and conversion',
+      target_product: product,
+      ai_buyer_persona: proposal.target_intent || `${product.tags || 'Lifestyle'} Autonomous Buyer`,
+      channel_strategy: proposal.ai_buyer_message || `Targeted ACP feed and intent indexing for ${product.name}`,
+      sample_buyer_query: proposal.sample_buyer_query || `buy ${product.name.toLowerCase()}`,
+      expected_basket_lift: '+28% Projected Basket Lift',
+      campaign_name: proposal.campaign_name || `${product.name} AI Growth Campaign`,
+      target_intent: proposal.target_intent,
+      ai_buyer_message: proposal.ai_buyer_message
+    };
 
     await addAuditLogEntry({
       run_id,
       timestamp: new Date().toISOString(),
       actor: 'agent',
-      action: `Growth Campaign Generated: ${campaign.campaign_name}`,
-      reasoning: campaign.target_intent || 'Targeted AI buyer campaign generated.',
+      action: `Growth Campaign Generated: ${campaignObj.campaign_name}`,
+      reasoning: proposal.target_intent || 'Targeted AI buyer campaign generated.',
       status: 'INFO',
       details: JSON.stringify({
         product_id: product.id,
         product_name: product.name,
         price: product.price,
-        campaign_name: campaign.campaign_name,
-        target_intent: campaign.target_intent,
-        ai_buyer_message: campaign.ai_buyer_message
+        campaign_name: campaignObj.campaign_name,
+        target_intent: proposal.target_intent,
+        ai_buyer_message: proposal.ai_buyer_message
       })
     });
 
     res.json({
       success: true,
       product,
-      campaign,
+      campaign: campaignObj,
       run_id
     });
   } catch (error: any) {

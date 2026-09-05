@@ -162,7 +162,7 @@ export function useThresholdApi() {
   const postCreateCampaign = async (
     productId: number,
     merchantGoal?: string
-  ): Promise<{ success: boolean; campaign: GrowthCampaign }> => {
+  ): Promise<{ success: boolean; product?: CatalogItem; campaign: GrowthCampaign }> => {
     const res = await fetch(`${API_BASE}/growth/campaign`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

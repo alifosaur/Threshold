@@ -20,6 +20,7 @@ import { GrowthTab } from './components/GrowthTab';
 import { DiagnosticsTab } from './components/DiagnosticsTab';
 import { AuditTrail } from './components/AuditTrail';
 import { SafetyDemoModal } from './components/SafetyDemoModal';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 export default function App() {
   const api = useThresholdApi();
@@ -194,17 +195,50 @@ export default function App() {
         </div>
       </header>
 
-      {currentTab === 'shop' && (
-        <ShopTab catalog={catalog} currentGoal={currentGoal} setCurrentGoal={setCurrentGoal} isExecuting={isExecuting} onExecuteAgent={executeAgent} maxSpend={maxSpend} sessionLimit={sessionLimit} sessionSpent={sessionSpent} policyLocked={policyLocked} approvedMerchants={approvedMerchants} onSavePolicy={handleSavePolicy} onRunSafetyDemo={async () => { setDemoRunning(true); try { setDemoResult(await api.postSafetyDemo()); setIsSafetyDemoOpen(true); } finally { setDemoRunning(false); } }} demoRunning={demoRunning} />
-      )}
+      <main className="pb-16">
+        <ErrorBoundary fallbackTitle="Threshold View Error">
+          {currentTab === 'shop' && (
+            <ShopTab catalog={catalog} currentGoal={currentGoal} setCurrentGoal={setCurrentGoal} isExecuting={isExecuting} onExecuteAgent={executeAgent} maxSpend={maxSpend} sessionLimit={sessionLimit} sessionSpent={sessionSpent} policyLocked={policyLocked} approvedMerchants={approvedMerchants} onSavePolicy={handleSavePolicy} onRunSafetyDemo={async () => { setDemoRunning(true); try { setDemoResult(await api.postSafetyDemo()); setIsSafetyDemoOpen(true); } finally { setDemoRunning(false); } }} demoRunning={demoRunning} />
+          )}
 
-      {currentTab === 'growth' && (
-        <GrowthTab catalog={catalog} opportunities={opportunities} growthMetrics={growthMetrics} activeCampaign={activeCampaign} isGeneratingCampaign={isGeneratingCampaign} onCreateCampaign={async (pid, goal) => { setIsGeneratingCampaign(true); try { const res = await api.postCreateCampaign(pid, goal); setActiveCampaign(res.campaign); } finally { setIsGeneratingCampaign(false); } }} onExecuteAgent={executeAgent} onRefreshMetrics={async () => { setGrowthMetrics(await api.getGrowthMetrics()); setOpportunities(await api.getGrowthOpportunities()); }} onSimulateLift={api.postSimulateLift} />
-      )}
+          {currentTab === 'growth' && (
+            <GrowthTab
+              catalog={catalog}
+              opportunities={opportunities}
+              growthMetrics={growthMetrics}
+              activeCampaign={activeCampaign}
+              isGeneratingCampaign={isGeneratingCampaign}
+              onCreateCampaign={async (pid, goal) => {
+                setIsGeneratingCampaign(true);
+                try {
+                  const res = await api.postCreateCampaign(pid, goal);
+                  const campaignData = (res && res.campaign) ? res.campaign : (res as any);
+                  if (campaignData) {
+                    if (!campaignData.target_product) {
+                      campaignData.target_product = (res && res.product) ? res.product : catalog.find(c => c.id === pid);
+                    }
+                    setActiveCampaign(campaignData);
+                  }
+                } catch (err) {
+                  console.error('Failed to create campaign:', err);
+                } finally {
+                  setIsGeneratingCampaign(false);
+                }
+              }}
+              onExecuteAgent={executeAgent}
+              onRefreshMetrics={async () => {
+                setGrowthMetrics(await api.getGrowthMetrics());
+                setOpportunities(await api.getGrowthOpportunities());
+              }}
+              onSimulateLift={api.postSimulateLift}
+            />
+          )}
 
-      {currentTab === 'diagnostics' && (
-        <DiagnosticsTab healthStatus={healthStatus} reconciliationReport={reconciliationReport} recentOrders={recentOrders} maxSpend={maxSpend} sessionLimit={sessionLimit} onRefreshDiagnostics={loadHealthAndOrders} onRefundPayment={async (order) => { setIsRefunding(order.order_id); try { await api.postRefund(order.order_id, order.amount); await loadHealthAndOrders(); } catch (err: any) { setRefundError({ message: err.message, request_id: err.request_id }); } finally { setIsRefunding(null); } }} isRefunding={isRefunding} refundError={refundError} setRefundError={setRefundError} />
-      )}
+          {currentTab === 'diagnostics' && (
+            <DiagnosticsTab healthStatus={healthStatus} reconciliationReport={reconciliationReport} recentOrders={recentOrders} maxSpend={maxSpend} sessionLimit={sessionLimit} onRefreshDiagnostics={loadHealthAndOrders} onRefundPayment={async (order) => { setIsRefunding(order.order_id); try { await api.postRefund(order.order_id, order.amount); await loadHealthAndOrders(); } catch (err: any) { setRefundError({ message: err.message, request_id: err.request_id }); } finally { setIsRefunding(null); } }} isRefunding={isRefunding} refundError={refundError} setRefundError={setRefundError} />
+          )}
+        </ErrorBoundary>
+      </main>
 
       <AgentActivityTab isOpen={isActivityOpen} onClose={() => setIsActivityOpen(false)} appState={appState} currentRunSteps={currentRunSteps} lastMatchStatus={lastMatchStatus} lastAlternatives={lastAlternatives} lastReason={lastReason} lastCrossSell={lastCrossSell} lastDecision={lastDecision} lastCreatedOrderId={lastCreatedOrderId} lastOrderStatus={lastOrderStatus} catalog={catalog} selectedProductId={null} isSafetyTesting={isSafetyTesting} onExecuteAgent={executeAgent} onVerifyPayment={async (orderId) => { setIsVerifyingPayment(orderId); try { await api.postPaymentVerify(orderId); setLastOrderStatus('COMPLETED'); await loadHealthAndOrders(); } finally { setIsVerifyingPayment(null); } }} isVerifyingPayment={isVerifyingPayment} onOpenProductDetail={() => {}} />
       <AuditTrail isOpen={isAuditTrailOpen} onClose={() => setIsAuditTrailOpen(false)} auditSessions={auditSessions} onRefreshAudit={loadAuditLogs} />

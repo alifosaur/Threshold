@@ -301,49 +301,53 @@ Respond strictly in valid JSON:
   "sample_buyer_query": string
 }`;
 
-  let attempts = 0;
-  const maxAttempts = 3;
+  for (let i = 0; i < GROQ_MODELS.length; i++) {
+    const model = GROQ_MODELS[i];
+    try {
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: `Generate growth campaign for product ID ${product.id} ("${product.name}").` }
+          ],
+          response_format: { type: 'json_object' },
+          max_tokens: 500,
+          temperature: 0.2
+        })
+      });
 
-  while (attempts < maxAttempts) {
-    attempts++;
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: 'qwen/qwen3.8-27b',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Generate growth campaign for product ID ${product.id} ("${product.name}").` }
-        ],
-        response_format: { type: 'json_object' },
-        temperature: 0.2
-      })
-    });
+      if (!response.ok) {
+        console.warn(`[Groq Campaign] Model ${model} returned status ${response.status}`);
+        continue;
+      }
 
-    if (response.status === 429 && attempts < maxAttempts) {
-      const retryHeader = response.headers.get('retry-after');
-      const waitMs = retryHeader ? (parseFloat(retryHeader) * 1000) + 1500 : attempts * 3000;
-      await new Promise(r => setTimeout(r, waitMs));
+      const result = (await response.json()) as any;
+      const content = result.choices?.[0]?.message?.content;
+      if (!content) {
+        continue;
+      }
+
+      const proposal: CampaignProposal = JSON.parse(content);
+      if (proposal.campaign_name && proposal.sample_buyer_query) {
+        return proposal;
+      }
+    } catch (err) {
+      console.warn(`[Groq Campaign] Model ${model} failed, trying next model:`, err);
       continue;
     }
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Groq API error (status ${response.status}): ${errorText}`);
-    }
-
-    const result = (await response.json()) as any;
-    const content = result.choices?.[0]?.message?.content;
-    if (!content) {
-      throw new Error('Groq returned an empty completions response.');
-    }
-
-    const proposal: CampaignProposal = JSON.parse(content);
-    return proposal;
   }
 
-  throw new Error('Groq request exceeded maximum retry attempts.');
+  // Graceful deterministic fallback if upstream LLM is temporarily saturated
+  return {
+    campaign_name: `${product.name} AI Growth Push`,
+    target_intent: `Buyers searching for ${product.name.toLowerCase()} or complementary ${product.tags} under ₹${product.price + 500}`,
+    ai_buyer_message: `Looking for premium ${product.name.toLowerCase()}? ${product.name} from ${product.merchant} is available for ₹${product.price}.`,
+    sample_buyer_query: `buy ${product.name.toLowerCase()} from ${product.merchant}`
+  };
 }

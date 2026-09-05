@@ -327,49 +327,58 @@ export function GrowthTab({
                 Active Orchestrated Campaign
               </span>
               <h2 className="text-lg font-serif font-extrabold text-[#1E1D1A] uppercase tracking-wide mt-1">
-                Campaign: {activeCampaign.target_product.name}
+                Campaign: {activeCampaign.target_product?.name || activeCampaign.campaign_name || 'AI Growth Push'}
               </h2>
             </div>
             <span className="text-[8.5px] font-extrabold bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full">
-              {activeCampaign.expected_basket_lift}
+              {activeCampaign.expected_basket_lift || '+28% Basket Lift'}
             </span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-[9.5px]">
             <div className="bg-white p-4 rounded-2xl border border-[#E6E2D8] space-y-1">
               <span className="text-[8px] font-extrabold text-[#8C887E] uppercase tracking-wider block">AI Buyer Persona</span>
-              <p className="font-bold text-[#1E1D1A]">{activeCampaign.ai_buyer_persona}</p>
+              <p className="font-bold text-[#1E1D1A]">{activeCampaign.ai_buyer_persona || activeCampaign.target_intent || 'Autonomous AI Buyer'}</p>
             </div>
             <div className="bg-white p-4 rounded-2xl border border-[#E6E2D8] space-y-1">
               <span className="text-[8px] font-extrabold text-[#8C887E] uppercase tracking-wider block">Channel & Agent Strategy</span>
-              <p className="font-bold text-[#1E1D1A]">{activeCampaign.channel_strategy}</p>
+              <p className="font-bold text-[#1E1D1A]">{activeCampaign.channel_strategy || activeCampaign.ai_buyer_message || 'Targeted ACP feed and intent indexing'}</p>
             </div>
             <div className="bg-white p-4 rounded-2xl border border-[#E6E2D8] space-y-1">
               <span className="text-[8px] font-extrabold text-[#8C887E] uppercase tracking-wider block">Sample Buyer Prompt</span>
-              <p className="font-bold text-emerald-800 italic">"{activeCampaign.sample_buyer_query}"</p>
+              <p className="font-bold text-emerald-800 italic">"{activeCampaign.sample_buyer_query || 'buy target product'}"</p>
             </div>
           </div>
 
           <div className="flex justify-between items-center bg-white p-4 rounded-2xl border border-[#E6E2D8]">
             <div className="flex items-center gap-3">
-              <img
-                src={activeCampaign.target_product.image_url}
-                alt={activeCampaign.target_product.name}
-                className="h-12 w-12 rounded-xl object-cover border border-[#E6E2D8]"
-              />
+              {activeCampaign.target_product?.image_url && (
+                <img
+                  src={activeCampaign.target_product.image_url}
+                  alt={activeCampaign.target_product.name || 'Product'}
+                  className="h-12 w-12 rounded-xl object-cover border border-[#E6E2D8]"
+                />
+              )}
               <div>
-                <h4 className="font-extrabold text-xs text-[#1E1D1A] uppercase">{activeCampaign.target_product.name}</h4>
-                <span className="text-[9px] text-[#8C887E] font-bold">₹{activeCampaign.target_product.price} • {activeCampaign.target_product.merchant}</span>
+                <h4 className="font-extrabold text-xs text-[#1E1D1A] uppercase">
+                  {activeCampaign.target_product?.name || activeCampaign.campaign_name || 'Target Product'}
+                </h4>
+                <span className="text-[9px] text-[#8C887E] font-bold">
+                  {activeCampaign.target_product?.price ? `₹${activeCampaign.target_product.price}` : ''}
+                  {activeCampaign.target_product?.merchant ? ` • ${activeCampaign.target_product.merchant}` : ''}
+                </span>
               </div>
             </div>
 
-            <button
-              onClick={() => onExecuteAgent(activeCampaign.sample_buyer_query, false)}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl text-[10px] font-extrabold uppercase tracking-wider transition-all shadow-md flex items-center gap-2 shrink-0 group"
-            >
-              <span>Test with AI Buyer</span>
-              <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
-            </button>
+            {activeCampaign.sample_buyer_query && (
+              <button
+                onClick={() => onExecuteAgent(activeCampaign.sample_buyer_query!, false)}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl text-[10px] font-extrabold uppercase tracking-wider transition-all shadow-md flex items-center gap-2 shrink-0 group"
+              >
+                <span>Test with AI Buyer</span>
+                <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
+              </button>
+            )}
           </div>
         </div>
       )}
