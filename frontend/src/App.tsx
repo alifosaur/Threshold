@@ -137,16 +137,25 @@ export default function App() {
     setAppState('working');
     setIsExecuting(true);
     setIsSafetyTesting(isSafetyTest);
+    
+    // Immediately clear previous run state so previous product/order is never retained
+    setCurrentRunSteps([]);
+    setLastCreatedOrderId(null);
+    setLastOrderStatus('PAYMENT_PENDING');
+    setLastDecision(null);
+    setLastCrossSell(null);
+    setLastMatchStatus(null);
+    setLastAlternatives([]);
+    setLastReason('');
+
     try {
       const data = await api.postAgentAct(goalToSend, isSafetyTest, runIdOverride);
       const sorted = (data.steps || []).sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
       setCurrentRunSteps(sorted);
       setLastCrossSell(data.cross_sell || null);
       setLastDecision(data.decision || null);
-      if (data.order_id) {
-        setLastCreatedOrderId(data.order_id);
-        setLastOrderStatus(data.status || 'PAYMENT_PENDING');
-      }
+      setLastCreatedOrderId(data.order_id || null);
+      setLastOrderStatus(data.status || (data.decision?.status === 'BLOCKED' ? 'BLOCKED' : 'PAYMENT_PENDING'));
       setLastMatchStatus(data.match_status === 'NO_EXACT_MATCH' ? 'NO_EXACT_MATCH' : 'EXACT_MATCH');
       setLastAlternatives(data.alternatives || []);
       setLastReason(data.reason || '');

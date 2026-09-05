@@ -114,11 +114,39 @@ export function AgentActivityTab({
               
               {lastMatchStatus === 'EXACT_MATCH' ? (
                 (() => {
-                  const selection = currentRunSteps.find(s => s.actor === 'agent' && s.status === 'SUCCESS');
-                  const rejection = currentRunSteps.find(s => s.actor === 'policy_engine' && s.status === 'REJECTED');
+                  const rejection = currentRunSteps.find(s => 
+                    (s.actor === 'policy_engine' && (s.status === 'REJECTED' || s.status === 'FAILED')) ||
+                    s.status === 'REJECTED'
+                  );
                   
-                  const isBlocked = isSafetyTesting || rejection;
-                  const item = catalog.find(i => i.id === selection?.details?.selected_item_id) || catalog.find(i => i.id === selectedProductId) || catalog[0];
+                  const isBlocked = 
+                    isSafetyTesting || 
+                    !!rejection || 
+                    (lastDecision as any)?.status === 'BLOCKED' || 
+                    (lastDecision as any)?.status === 'REJECTED' ||
+                    lastDecision?.razorpay_contacted === false;
+
+                  const resolvedItemId = 
+                    (lastDecision as any)?.item_id ||
+                    currentRunSteps.find(s => (s.details as any)?.item_id)?.details?.item_id ||
+                    currentRunSteps.find(s => (s.details as any)?.selected_item_id)?.details?.selected_item_id ||
+                    (currentRunSteps.find(s => (s.details as any)?.product_id)?.details as any)?.product_id ||
+                    selectedProductId;
+
+                  const item = 
+                    (resolvedItemId ? catalog.find(i => i.id === Number(resolvedItemId)) : null) ||
+                    (lastDecision?.product ? catalog.find(i => i.name.toLowerCase() === lastDecision.product?.toLowerCase()) : null) ||
+                    (lastDecision?.product ? {
+                      id: 0,
+                      name: lastDecision.product,
+                      price: lastDecision.price || lastDecision.amount || 0,
+                      merchant: lastDecision.merchant || 'Catalog Merchant',
+                      image_url: '/products/product_1.jpg',
+                      tags: 'product',
+                      stock: 10,
+                      currency: 'INR'
+                    } as CatalogItem : null) ||
+                    catalog[0];
 
                   return (
                     <div className="space-y-4">
